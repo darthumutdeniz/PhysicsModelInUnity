@@ -6,6 +6,7 @@ public class Stick : MonoBehaviour
 {
 
     [SerializeField] GameObject object1;
+    
     [SerializeField] GameObject object2;
     [Header("0 for none, 1 for the first, 2 for the second")]
     [Range(0,2)] [SerializeField] int constantIndex;
