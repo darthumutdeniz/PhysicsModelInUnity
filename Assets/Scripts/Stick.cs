@@ -19,11 +19,15 @@ public class Stick : MonoBehaviour
 
     GameObject mainObject;
     GameObject otherObject;
+    PhysicsObject mainPO;
+    PhysicsObject otherPO;
     bool hasPutThemInPlace = false;
 
 
     void Start()
     {
+        PhysicsObject mainPO = mainObject.GetComponent<PhysicsObject>();
+        PhysicsObject otherPO = otherObject.GetComponent<PhysicsObject>();
         widht = transform.lossyScale.x;
         if (constantIndex == 1)
         {
@@ -61,9 +65,9 @@ public class Stick : MonoBehaviour
     }
 
     void SetTheStartingVelocity(){
-        PhysicsObject mainPO = mainObject.GetComponent<PhysicsObject>();
-        PhysicsObject otherPO = otherObject.GetComponent<PhysicsObject>();
         mainPO.AddForce(1,0,0);
+        mainPO.SetVelocity(Vector3.zero);
+        otherPO.SetVelocity(Vector3.zero);
         /*float angle = Mathf.Atan2(dy, dx);
         Debug.Log("Rotation of Stick (in radians)" + angle);
        
@@ -81,6 +85,8 @@ public class Stick : MonoBehaviour
 
     void Update()
     {
+        mainPO.SetVelocity(Vector3.zero);
+        otherPO.SetVelocity(Vector3.zero);
         dx = mainObject.transform.position.x - otherObject.transform.position.y;
         dy = mainObject.transform.position.y - otherObject.transform.position.y;
         if(constantIndex == 0)

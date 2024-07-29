@@ -26,6 +26,7 @@ public class PhysicsObject : MonoBehaviour
     [SerializeField] float gravityPotentialEnergy;
     [SerializeField] float totalEnergy;
     
+    bool isChangingVelocity = false;
     
 
     void Start()
@@ -35,7 +36,7 @@ public class PhysicsObject : MonoBehaviour
 
     void Update()
     {
-        CaculateValues();
+        CaculateMotion();
         CaculateEnergy();
     }
 
@@ -44,8 +45,9 @@ public class PhysicsObject : MonoBehaviour
         forces = new List<Vector3>();
     }
 
-    void CaculateValues()
+    void CaculateMotion()
     {
+        if (isChangingVelocity) {return;}
         netForce = CaculateNetForce();
         acceleration = gravityAcceleration * gravityScale + (netForce / mass);
         accelerationReader = acceleration;
@@ -76,7 +78,10 @@ public class PhysicsObject : MonoBehaviour
 
     public void SetVelocity(Vector3 newVelocity)
     {
+        acceleration = Vector3.zero;
+        isChangingVelocity = true;
         velocity = newVelocity;
+        isChangingVelocity = false;
     }
 
     void CaculateEnergy()
