@@ -63,6 +63,7 @@ public class PhysicsObject : MonoBehaviour
         {
             netForce += force;
         }
+        netForce -= new Vector3(0,0,netForce.z);
         return netForce;
     }
 

@@ -14,11 +14,18 @@ public class Spring : MonoBehaviour
     [SerializeField] float lenght0;
     [Header("0 for none, 1 for the first, 2 for the second")]
     [Range(0,2)] [SerializeField] int constantIndex;
+    [SerializeField] Vector2 springForce;
     public bool hasStarted = false;
     float strartingLenght;
     float rotationInRadians;
+    float instanteniousLenght;
+    float displacement;
+    float magnitudeForce;
+    float angle;
     float dx = 0;
     float dy = 0;
+    //for expr. puposes only delete later
+    [SerializeReference] float maxForce;
     GameObject mainObject;
     bool hasPutThemInPlace = false;
     
@@ -91,6 +98,13 @@ public class Spring : MonoBehaviour
 
     private void CaculateTheForce()
     {
+        rotationInRadians = transform.localEulerAngles.z * Mathf.Deg2Rad;
+        instanteniousLenght = transform.localScale.x;
+        displacement = instanteniousLenght - lenght0;
+        magnitudeForce = springConstant * displacement;
+        angle = Mathf.Atan2(dy, dx);
+        springForce = new Vector2(magnitudeForce * Mathf.Cos(angle), magnitudeForce * Mathf.Sin(angle));
+        if(magnitudeForce > maxForce) maxForce = magnitudeForce;
         if (constantIndex == 0){
             BothAreKinetic();
         }
@@ -102,11 +116,6 @@ public class Spring : MonoBehaviour
 
     private void BothAreKinetic()
     {
-        rotationInRadians = transform.localEulerAngles.z * Mathf.Deg2Rad;
-        float instanteniousLenght = transform.localScale.x;
-        float displacement = instanteniousLenght - lenght0;
-        float magnitudeForce = springConstant * displacement;
-        float angle = Mathf.Atan2(dy, dx);
         object1.GetComponent<PhysicsObject>().
         ChangeForce(new Vector3(magnitudeForce * Mathf.Cos(angle),
                 magnitudeForce * Mathf.Sin(angle), 143));
@@ -116,12 +125,7 @@ public class Spring : MonoBehaviour
     }
 
     private void OneIsStabilized()
-    {
-        rotationInRadians = transform.localEulerAngles.z * Mathf.Deg2Rad;
-        float instanteniousLenght = transform.localScale.x;
-        float displacement = instanteniousLenght - lenght0;
-        float magnitudeForce = springConstant * displacement;
-        float angle = Mathf.Atan2(dy, dx);
+    {      
         mainObject.GetComponent<PhysicsObject>().
         ChangeForce(new Vector3(magnitudeForce * Mathf.Cos(angle),
                 magnitudeForce * Mathf.Sin(angle), 143));
