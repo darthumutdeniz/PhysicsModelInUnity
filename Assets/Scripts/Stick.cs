@@ -26,8 +26,6 @@ public class Stick : MonoBehaviour
 
     void Start()
     {
-        PhysicsObject mainPO = mainObject.GetComponent<PhysicsObject>();
-        PhysicsObject otherPO = otherObject.GetComponent<PhysicsObject>();
         widht = transform.lossyScale.x;
         if (constantIndex == 1)
         {
@@ -44,6 +42,8 @@ public class Stick : MonoBehaviour
             mainObject = object1;
             otherObject = object2;
         }
+        mainPO = mainObject.GetComponent<PhysicsObject>();
+        otherPO = otherObject.GetComponent<PhysicsObject>();
         PutThemInPlace();
     }
 
@@ -65,28 +65,15 @@ public class Stick : MonoBehaviour
     }
 
     void SetTheStartingVelocity(){
-        mainPO.AddForce(1,0,0);
+        /*mainPO.AddForce(1,0,0);
         mainPO.SetVelocity(Vector3.zero);
-        otherPO.SetVelocity(Vector3.zero);
-        /*float angle = Mathf.Atan2(dy, dx);
+        otherPO.SetVelocity(Vector3.zero);*/
+        float angle = Mathf.Atan2(dy, dx);
         Debug.Log("Rotation of Stick (in radians)" + angle);
-       
-        otherObject.GetComponent<PhysicsObject>().velocity = new Vector3(0,0,0);
-        Debug.Log("Velocity of the static" + otherObject.GetComponent<PhysicsObject>().velocity);
-        Vector2 mainVelocity = mainPO.GetVelocity();
-        float ratioOfVelocity = Mathf.Atan2(mainVelocity.y, mainVelocity.x);
-        float magnitudeOfNewSpeed = mainVelocity.magnitude* Mathf.Cos(Mathf.PI/2 -angle -ratioOfVelocity);
-        Vector3 newVelocity = new Vector3(magnitudeOfNewSpeed* Mathf.Sin(angle), magnitudeOfNewSpeed* Mathf.Cos(angle), 0);
-        Debug.Log("new velocity" + newVelocity);
-        mainPO.velocity = newVelocity;
-        Debug.Log("kinetic ones velocity" + mainPO.velocity);*/
-        
     }
 
     void Update()
     {
-        mainPO.SetVelocity(Vector3.zero);
-        otherPO.SetVelocity(Vector3.zero);
         dx = mainObject.transform.position.x - otherObject.transform.position.y;
         dy = mainObject.transform.position.y - otherObject.transform.position.y;
         if(constantIndex == 0)

@@ -27,13 +27,7 @@ public class Orbiter : MonoBehaviour
         float forceMagnitude = (thisMass * otherMass)/(Mathf.Pow(dx,2)+Mathf.Pow(dy,2));
         float angle = Mathf.Atan2(dy,dx);
         Vector2 NewForce = new Vector2(forceMagnitude * Mathf.Cos(angle), forceMagnitude * Mathf.Sin(angle));
-        for(int i = 0; i <pOs.forces.Count; i++)
-        {
-            if (pOs.forces[i].z == 451)
-            {
-                pOs.forces[i] = new Vector3(-NewForce.x, -NewForce.y, 451);
-            }
-        }
+        pOs.ChangeForce(NewForce);
 
     }
 }

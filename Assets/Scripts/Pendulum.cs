@@ -23,7 +23,7 @@ public class Pendulum : MonoBehaviour
     }
 
     // Update is called once per frame
-    void Update()
+    void FixedUpdate()
     {
         angularAcceleration = -10/lenght * Mathf.Sin(angle);
         angularSpeed += angularAcceleration * Time.deltaTime;

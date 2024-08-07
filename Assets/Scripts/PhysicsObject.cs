@@ -10,13 +10,13 @@ public class PhysicsObject : MonoBehaviour
     [SerializeField] float mass = 1;
     [SerializeField] float gravityScale = 1;
     [SerializeField] Vector3 v0;
-    public List<Vector3> forces = new List<Vector3>();
+    [SerializeField] List<Vector3> forces = new List<Vector3>();
+    Vector3 velocity;
     Vector3 netForce;
-    Vector3 gravityAcceleration = new Vector3(0,-10,0);
+    Vector3 gravityAcceleration = new Vector3(0,-9.81f,0);
 
     [Header("ValueReader")]
     [SerializeField] Vector3 velocityReader;
-    public Vector3 velocity;
     [SerializeField] Vector3 accelerationReader;
     Vector3 acceleration;
 
@@ -26,15 +26,13 @@ public class PhysicsObject : MonoBehaviour
     [SerializeField] float gravityPotentialEnergy;
     [SerializeField] float totalEnergy;
     
-    bool isChangingVelocity = false;
-    
 
     void Start()
     {
         velocity = v0;
     }
 
-    void Update()
+    void FixedUpdate()
     {
         CaculateMotion();
         CaculateEnergy();
@@ -47,7 +45,6 @@ public class PhysicsObject : MonoBehaviour
 
     void CaculateMotion()
     {
-        if (isChangingVelocity) {return;}
         netForce = CaculateNetForce();
         acceleration = gravityAcceleration * gravityScale + (netForce / mass);
         accelerationReader = acceleration;
@@ -79,10 +76,7 @@ public class PhysicsObject : MonoBehaviour
 
     public void SetVelocity(Vector3 newVelocity)
     {
-        acceleration = Vector3.zero;
-        isChangingVelocity = true;
         velocity = newVelocity;
-        isChangingVelocity = false;
     }
 
     void CaculateEnergy()
@@ -98,18 +92,14 @@ public class PhysicsObject : MonoBehaviour
     }
     public void ChangeForce(Vector3 force)
     {
-        bool hasFoundIt = false;
         for(int i =0; i < forces.Count; i++)
         {
             if(forces[i].z == force.z)
             {
                 forces[i] = force;
-                hasFoundIt = true;
+                return;
             }
         }
-        if(!hasFoundIt)
-        {
-            AddForce(force.x,force.y,force.z);
-        }
+        forces.Add(force);
     }
 }
