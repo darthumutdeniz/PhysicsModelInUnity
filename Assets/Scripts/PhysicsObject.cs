@@ -13,10 +13,11 @@ public class PhysicsObject : MonoBehaviour
     [SerializeField] List<Vector3> forces = new List<Vector3>();
     Vector3 velocity;
     Vector3 netForce;
-    Vector3 gravityAcceleration = new Vector3(0,-9.81f,0);
+    Vector3 gravityAcceleration;
+    bool isChangingVelocity = false;
 
     [Header("ValueReader")]
-    [SerializeField] Vector3 velocityReader;
+    [SerializeReference] Vector3 velocityReader;
     [SerializeField] Vector3 accelerationReader;
     Vector3 acceleration;
 
@@ -27,12 +28,13 @@ public class PhysicsObject : MonoBehaviour
     [SerializeField] float totalEnergy;
     
 
-    void Start()
+    void Awake()
     {
         velocity = v0;
+        gravityAcceleration = FindObjectOfType<UniversalConstants>().GetSmallG();
     }
 
-    void FixedUpdate()
+    void Update()
     {
         CaculateMotion();
         CaculateEnergy();
@@ -45,6 +47,7 @@ public class PhysicsObject : MonoBehaviour
 
     void CaculateMotion()
     {
+        if (isChangingVelocity) return;
         netForce = CaculateNetForce();
         acceleration = gravityAcceleration * gravityScale + (netForce / mass);
         accelerationReader = acceleration;
@@ -76,7 +79,10 @@ public class PhysicsObject : MonoBehaviour
 
     public void SetVelocity(Vector3 newVelocity)
     {
+        isChangingVelocity = true;
+        acceleration = Vector3.zero;
         velocity = newVelocity;
+        isChangingVelocity = false;
     }
 
     void CaculateEnergy()
