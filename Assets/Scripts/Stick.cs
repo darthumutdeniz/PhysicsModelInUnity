@@ -15,19 +15,17 @@ public class Stick : MonoBehaviour
     float rotationInRadians;
     float dx = 0;
     float dy = 0;
-    float gama = 0; //the angle that is the ratio of the differences of axies static - kinetic
     double angle;
-
+    float distance;
     GameObject movingObject;
     GameObject nonMovingObject;
     PhysicsObject movingPO;
     PhysicsObject nonMovingPO;
-    bool hasPutThemInPlace = false;
 
 
     void Start()
     {
-        widht = transform.lossyScale.x;
+        widht = transform.localScale.x;
         if (constantIndex == 1)
         {
             movingObject = object1;
@@ -86,6 +84,7 @@ public class Stick : MonoBehaviour
         CalculateDistance();
         float x = dx/2 + object1.transform.position.x;
         float y = dy/2 + object1.transform.position.y;
+        distance = Mathf.Sqrt(Mathf.Pow(dx,2) + Mathf.Pow(dy,2));
         transform.position = new Vector3(x, y, 0);
         transform.eulerAngles = new Vector3(0, 0, Mathf.Atan2(dy,dx) * Mathf.Rad2Deg);
 
@@ -97,14 +96,19 @@ public class Stick : MonoBehaviour
     }
     void OneOfThemIsStabilized()
     {
-        float thetaAngle =Mathf.Atan2(dx, dy);
-        Debug.Log(thetaAngle);
+        float thetaAngle = -Mathf.Atan2(dx, dy);
+        Debug.Log(thetaAngle * Mathf.Rad2Deg);
         Vector2 mainVelocity = movingPO.GetVelocity();
-        float centriputalMagnitude = movingPO.GetMass() * mainVelocity.magnitude * mainVelocity.magnitude / widht;
+        float centriputalMagnitude = movingPO.GetMass() * Mathf.Pow(mainVelocity.magnitude, 2) / distance;
+        Debug.Log(centriputalMagnitude);
         float gravitationalMagnitude = movingPO.GetMass() *
-         FindAnyObjectByType<UniversalConstants>().GetSmallG().magnitude * (float) Math.Cos(thetaAngle);
+         FindAnyObjectByType<UniversalConstants>().GetSmallG().magnitude *movingPO.GetGravityScale() * (float) Math.Cos(thetaAngle);
+        Debug.Log(gravitationalMagnitude);
         float magnitude = centriputalMagnitude + gravitationalMagnitude;
-        forceOfTension = new Vector3( magnitude* (float) Math.Sin(thetaAngle), magnitude * (float) Math.Cos(thetaAngle), 156);
+        Debug.Log(magnitude + "x eksen " + -magnitude* (float) Math.Sin(thetaAngle)
+         + "y eksen " +  magnitude * (float) Math.Cos(thetaAngle));
+        forceOfTension = magnitude * new Vector3(-Mathf.Sin(thetaAngle), Mathf.Cos(thetaAngle), 156/magnitude);
+        Debug.Log(distance);
         movingPO.ChangeForce(forceOfTension);
     }
 }
