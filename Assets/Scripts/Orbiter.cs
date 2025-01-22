@@ -22,12 +22,10 @@ public class Orbiter : MonoBehaviour
         float otherMass = square.GetComponent<PhysicsObject>().GetMass();
         Vector3 thisPosition = transform.position;
         Vector3 otherPosition = square.transform.position;
-        float dx = otherPosition.x - thisPosition.x;
-        float dy = otherPosition.y - thisPosition.y;
-        float forceMagnitude = (thisMass * otherMass)/(Mathf.Pow(dx,2)+Mathf.Pow(dy,2));
-        float angle = Mathf.Atan2(dy,dx);
-        Vector2 NewForce = new Vector2(forceMagnitude * Mathf.Cos(angle), forceMagnitude * Mathf.Sin(angle));
-        pOs.ChangeForce(NewForce);
+        Vector3 positionDifference = otherPosition - thisPosition;
+        Vector3 force = -thisMass * otherMass * positionDifference.normalized /positionDifference.sqrMagnitude;
+        force.z = 321;
+        pOs.ChangeForce(force);
 
     }
 }
