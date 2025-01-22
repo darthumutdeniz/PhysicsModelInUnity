@@ -14,16 +14,14 @@ public class Spring : MonoBehaviour
     [SerializeField] float lenght0;
     [Header("0 for none, 1 for the first, 2 for the second")]
     [Range(0,2)] [SerializeField] int constantIndex;
-    [SerializeField] Vector2 springForce;
+    [SerializeField] Vector3 springForce;
+    Vector3 positiondifference;
     public bool hasStarted = false;
-    float strartingLenght;
+    float startingLenght;
     float rotationInRadians;
     float instanteniousLenght;
     float displacement;
     float magnitudeForce;
-    float angle;
-    float dx = 0;
-    float dy = 0;
     //for expr. puposes only delete later
     [SerializeReference] float maxForce;
     GameObject mainObject;
@@ -33,7 +31,7 @@ public class Spring : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        strartingLenght = transform.lossyScale.x;
+        startingLenght = transform.lossyScale.x;
         switch (constantIndex){
             case 1:
                 mainObject = object1;
@@ -51,14 +49,9 @@ public class Spring : MonoBehaviour
     void PutThemInPlace()
     {
         rotationInRadians = transform.localEulerAngles.z * Mathf.Deg2Rad;
-        float lenghtInY = strartingLenght * Mathf.Sin(rotationInRadians);
-        float lenghtInX = strartingLenght * Mathf.Cos(rotationInRadians);
-        float x1 = transform.position.x - lenghtInX/2;
-        float y1 = transform.position.y - lenghtInY/2;
-        float x2 = transform.position.x + lenghtInX/2;
-        float y2 = transform.position.y + lenghtInY/2;
-        object1.transform.position = new Vector3(x1,y1,0);
-        object2.transform.position = new Vector3(x2,y2,0);
+        Vector3 startingDiffVector = startingLenght * new Vector3(Mathf.Sin(rotationInRadians), Mathf.Cos(rotationInRadians), 0);
+        object1.transform.position = transform.position - startingDiffVector/2;
+        object2.transform.position = transform.position + startingDiffVector/2;
         hasPutThemInPlace = true;
     }
  
@@ -67,7 +60,7 @@ public class Spring : MonoBehaviour
     void Update()
     {
         if(!hasStarted) {return;}
-        rotationInRadians = transform.localEulerAngles.z * Mathf.Deg2Rad;
+        positiondifference = object2.transform.position - object1.transform.position;
         ChangeLenght();
         CaculateTheForce();
     }
@@ -75,35 +68,21 @@ public class Spring : MonoBehaviour
     void ChangeLenght()
     {
         if(!hasPutThemInPlace) {return;}
-        float newX = CalculateXPosition();
-        float newY = CalculateYPosition();
-        float newLenght = Mathf.Sqrt(Mathf.Pow(dx,2) + Mathf.Pow(dy,2));
-        float angle = Mathf.Atan2(dy,dx) * Mathf.Rad2Deg;
-        transform.position = new Vector3(newX, newY, 0);
+        float newLenght = positiondifference.magnitude;
+        float angle = Mathf.Atan2(positiondifference.y, positiondifference.x) * Mathf.Rad2Deg;
+        transform.position = object1.transform.position + positiondifference/2;
         transform.localScale = new Vector3(newLenght, transform.localScale.y, transform.localScale.z);
         transform.eulerAngles = new Vector3(0, 0, angle);
-    }
-
-    float CalculateXPosition()
-    {
-        dx = object2.transform.position.x - object1.transform.position.x;
-        return dx/2 + object1.transform.position.x;
-    }
-    float CalculateYPosition()
-    {
-        dy = object2.transform.position.y - object1.transform.position.y;
-        return dy/2 + object1.transform.position.y;
     }
 
 
     private void CaculateTheForce()
     {
-        rotationInRadians = transform.localEulerAngles.z * Mathf.Deg2Rad;
         instanteniousLenght = transform.localScale.x;
         displacement = instanteniousLenght - lenght0;
         magnitudeForce = springConstant * displacement;
-        angle = Mathf.Atan2(dy, dx);
-        springForce = new Vector2(magnitudeForce * Mathf.Cos(angle), magnitudeForce * Mathf.Sin(angle));
+        springForce = magnitudeForce * positiondifference.normalized;
+        springForce.z = 143;
         if(magnitudeForce > maxForce) maxForce = magnitudeForce;
         if (constantIndex == 0){
             BothAreKinetic();
@@ -117,17 +96,14 @@ public class Spring : MonoBehaviour
     private void BothAreKinetic()
     {
         object1.GetComponent<PhysicsObject>().
-        ChangeForce(new Vector3(magnitudeForce * Mathf.Cos(angle),
-                magnitudeForce * Mathf.Sin(angle), 143));
+        ChangeForce(springForce);
         object2.GetComponent<PhysicsObject>().
-        ChangeForce(new Vector3(- magnitudeForce * Mathf.Cos(angle),
-                -magnitudeForce * Mathf.Sin(angle), -143));
+        ChangeForce(springForce);
     }
 
     private void OneIsStabilized()
     {      
         mainObject.GetComponent<PhysicsObject>().
-        ChangeForce(new Vector3(magnitudeForce * Mathf.Cos(angle),
-                magnitudeForce * Mathf.Sin(angle), 143));
+        ChangeForce(springForce);
     }
 }

@@ -14,7 +14,6 @@ public class PhysicsObject : MonoBehaviour
     Vector3 velocity;
     Vector3 netForce;
     Vector3 gravityAcceleration;
-    bool isChangingVelocity = false;
 
     [Header("ValueReader")]
     [SerializeReference] Vector3 velocityReader;
@@ -47,7 +46,6 @@ public class PhysicsObject : MonoBehaviour
 
     void CaculateMotion()
     {
-        if (isChangingVelocity) return;
         netForce = CaculateNetForce();
         acceleration = gravityAcceleration * gravityScale + (netForce / mass);
         accelerationReader = acceleration;
@@ -79,10 +77,11 @@ public class PhysicsObject : MonoBehaviour
 
     public void SetVelocity(Vector3 newVelocity)
     {
-        isChangingVelocity = true;
-        acceleration = Vector3.zero;
         velocity = newVelocity;
-        isChangingVelocity = false;
+    }
+    public float GetGravityScale()
+    {
+        return gravityScale;
     }
 
     void CaculateEnergy()

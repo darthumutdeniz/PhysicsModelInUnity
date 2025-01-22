@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -6,45 +7,44 @@ public class Stick : MonoBehaviour
 {
 
     [SerializeField] GameObject object1;
-    
     [SerializeField] GameObject object2;
-    [Header("0 for none, 1 for the first, 2 for the second")]
+    [Header("Moving Object's index 0 for none, 1 for the first, 2 for the second")]
     [Range(0,2)] [SerializeField] int constantIndex;
     [SerializeField] Vector3 forceOfTension;
     float widht;
     float rotationInRadians;
     float dx = 0;
     float dy = 0;
-    float gama = 0; //the angle that is the ratio of the differences of axies static - kinetic
-
-    GameObject mainObject;
-    GameObject otherObject;
-    PhysicsObject mainPO;
-    PhysicsObject otherPO;
-    bool hasPutThemInPlace = false;
+    double angle;
+    float distance;
+    GameObject movingObject;
+    GameObject nonMovingObject;
+    PhysicsObject movingPO;
+    PhysicsObject nonMovingPO;
 
 
     void Start()
     {
-        widht = transform.lossyScale.x;
+        widht = transform.localScale.x;
         if (constantIndex == 1)
         {
-            mainObject = object1;
-            otherObject = object2;
+            movingObject = object1;
+            nonMovingObject = object2;
         }
         else if(constantIndex == 2)
         {
-            mainObject = object2;
-            otherObject = object1;
+            movingObject = object2;
+            nonMovingObject = object1;
         }
         else
         {
-            mainObject = object1;
-            otherObject = object2;
+            movingObject = object1;
+            nonMovingObject = object2;
         }
-        mainPO = mainObject.GetComponent<PhysicsObject>();
-        otherPO = otherObject.GetComponent<PhysicsObject>();
+        movingPO = movingObject.GetComponent<PhysicsObject>();
+        nonMovingPO = nonMovingObject.GetComponent<PhysicsObject>();
         PutThemInPlace();
+        distance = Mathf.Sqrt(Mathf.Pow(dx,2) + Mathf.Pow(dy,2));
     }
 
     void PutThemInPlace()
@@ -59,33 +59,57 @@ public class Stick : MonoBehaviour
         float y2 = transform.position.y + lenghtInY/2;
         object1.transform.position = new Vector3(x1,y1,0);
         object2.transform.position = new Vector3(x2,y2,0);
-        if(constantIndex != 0){
-            SetTheStartingVelocity();
-        }
+        SetTheStartingVelocity();
     }
 
     void SetTheStartingVelocity(){
-        /*mainPO.AddForce(1,0,0);
-        mainPO.SetVelocity(Vector3.zero);
-        otherPO.SetVelocity(Vector3.zero);*/
-        float angle = Mathf.Atan2(dy, dx);
-        Debug.Log("Rotation of Stick (in radians)" + angle);
+        nonMovingPO.SetVelocity(Vector3.zero);
+        CalculateDistance();
+        angle = Math.Atan2(dy, dx);
+        Vector2 v0 = movingPO.GetVelocity();
+        Debug.Log("Rotation of Stick (in radians) " + angle);
+        Debug.Log(nonMovingPO.GetVelocity() + " main velocity");
+        Vector2 vY = v0.y * (float) Math.Cos(angle) * new Vector2((float) -Math.Sin(angle), (float) Math.Cos(angle));
+        Vector2 vX = v0.x * (float) Math.Sin(angle) * new Vector2((float) Math.Sin(angle), -(float) Math.Cos(angle));
+        movingPO.SetVelocity(vY + vX);
     }
 
-    void Update()
+    void CalculateDistance()
     {
-        dx = mainObject.transform.position.x - otherObject.transform.position.y;
-        dy = mainObject.transform.position.y - otherObject.transform.position.y;
+        dx = object2.transform.position.x - object1.transform.position.x;
+        dy = object2.transform.position.y - object1.transform.position.y;
+    }
+
+    void FixedUpdate()
+    {
+        CalculateDistance();
+        float x = dx/2 + object1.transform.position.x;
+        float y = dy/2 + object1.transform.position.y;
+
         if(constantIndex == 0)
         {}
         else{
             OneOfThemIsStabilized();
         }
+        distance = Mathf.Sqrt(Mathf.Pow(dx,2) + Mathf.Pow(dy,2));
+        transform.position = new Vector3(x, y, 0);
+        transform.eulerAngles = new Vector3(0, 0, Mathf.Atan2(dy,dx) * Mathf.Rad2Deg);
     }
     void OneOfThemIsStabilized()
     {
-        float angle = Mathf.Atan2(dx,-dy);
-        PhysicsObject mainPO = mainObject.GetComponent<PhysicsObject>();
-        Vector2 mainVelocity = mainPO.GetVelocity();
+        float thetaAngle = -Mathf.Atan2(dx, dy);
+        Debug.Log(thetaAngle * Mathf.Rad2Deg);
+        Vector2 mainVelocity = movingPO.GetVelocity();
+        float centriputalMagnitude = movingPO.GetMass() * Mathf.Pow(mainVelocity.magnitude, 2) / distance;
+        Debug.Log(centriputalMagnitude);
+        float gravitationalMagnitude = movingPO.GetMass() *
+         FindAnyObjectByType<UniversalConstants>().GetSmallG().magnitude * movingPO.GetGravityScale() * (float) Math.Cos(thetaAngle);
+        Debug.Log(gravitationalMagnitude);
+        float magnitude = centriputalMagnitude + gravitationalMagnitude;
+        Debug.Log(magnitude + " x eksen " + -magnitude* (float) Math.Sin(thetaAngle)
+         + " y eksen " +  magnitude * (float) Math.Cos(thetaAngle));
+        forceOfTension = new Vector3(-magnitude * Mathf.Sin(thetaAngle), magnitude * Mathf.Cos(thetaAngle), 156);
+        Debug.Log(distance);
+        movingPO.ChangeForce(forceOfTension);
     }
 }
